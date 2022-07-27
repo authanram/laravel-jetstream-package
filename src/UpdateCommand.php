@@ -1,6 +1,9 @@
-<?php /**
+<?php /** @noinspection PhpUnusedParameterInspection */
+
+/**
  * @noinspection PhpMissingFieldTypeInspection
  * @noinspection PhpMissingReturnTypeInspection
+ * @noinspection PhpUndefinedMethodInspection
  * @noinspection ReturnTypeCanBeDeclaredInspection
  */
 
@@ -13,48 +16,57 @@ use RuntimeException;
 class UpdateCommand extends Command
 {
     protected $signature = 'jetstream-package:update';
-
     protected $description = 'Update package stubs';
-
-    private $sourcePath = '';
-    private $destinationPath = '';
 
     public function handle()
     {
-        $this->sourcePath = base_path('vendor/laravel/jetstream/stubs');
-        $this->destinationPath = __DIR__.'/../stubs';
+        $paths = [
+            [
+                'source' => __DIR__.'/../vendor/laravel/jetstream/stubs',
+                'destination' => __DIR__.'/../stubs/jetstream',
+            ],
+            [
+                'source' => __DIR__.'/../vendor/laravel/fortify/stubs',
+                'destination' => __DIR__.'/../stubs/fortify',
+            ],
+        ];
 
-        $this->task('Installing Laravel', function () {
-            return true;
-        });
-
-        if ($this->deleteStubsDirectory() === false) {
-            throw new RuntimeException(
-                "Failed to delete directory: $this->sourcePath",
-            );
+        foreach ($paths as $path) {
+            $this->handleDirectory($path['source'], $path['destination']);
         }
-
-        $this->info('');
-
-        if ($this->copyStubsDirectory() === false) {
-            throw new RuntimeException(
-                "Failed to copy directory $this->sourcePath to $this->destinationPath",
-            );
-        }
-
-        $this->info("Directory copied from $this->sourcePath to $this->destinationPath");
 
         return static::SUCCESS;
     }
 
-    private function deleteStubsDirectory()
+    private function handleDirectory($sourcePath, $destinationPath)
     {
-        return File::deleteDirectory($this->sourcePath);
+        File::ensureDirectoryExists($destinationPath);
+
+        $this->task("<fg=green>Delete directory</> $destinationPath", function () use ($destinationPath) {
+            if (File::deleteDirectory($destinationPath) === false) {
+                throw new RuntimeException(
+                    "Failed to delete directory: $destinationPath",
+                );
+            }
+        });
+
+        $this->task("<fg=green>Copy</> $sourcePath <fg=green>to</> $destinationPath", function () use ($sourcePath, $destinationPath) {
+            if (File::copyDirectory($sourcePath, $destinationPath) === false) {
+                throw new RuntimeException(
+                    "Failed to copy $sourcePath to $destinationPath",
+                );
+            }
+        });
     }
 
-    private function copyStubsDirectory()
+    private function task($task, $callable)
     {
-        return File::copyDirectory($this->destinationPath, $this->sourcePath);
+        $this->output->write("$task ");
+
+        $callable();
+
+        $this->output->write('<fg=green>✔</>');
+
+        $this->newLine();
     }
 }
-

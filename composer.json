@@ -16,7 +16,6 @@
         "fakerphp/faker": "^1.9.1",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^6.1",
-        "nunomaduro/laravel-console-task": "^1.7.0",
         "nunomaduro/phpinsights": "^2.2",
         "orchestra/testbench": "^7.6.0",
         "pestphp/pest": "^1.21",
@@ -30,7 +29,9 @@
     },
     "autoload": {
         "psr-4": {
-            "Authanram\\LaravelJetstreamPackage\\": "src/"
+            "Authanram\\LaravelJetstreamPackage\\": "src/",
+            "App\\Actions\\Fortify\\": "stubs/fortify/",
+            "App\\": "stubs/jetstream/app/"
         }
     },
     "autoload-dev": {
