@@ -1,6 +1,6 @@
 # authanram/laravel-jetstream-package
 
-*CI BANNER HERE*
+[![CI](https://github.com/authanram/laravel-jetstream-package/actions/workflows/main.yml/badge.svg)](https://github.com/authanram/laravel-jetstream-package/actions/workflows/main.yml)
 
 *DESCRIPTION HERE*
 
