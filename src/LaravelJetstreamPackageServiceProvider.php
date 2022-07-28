@@ -8,8 +8,13 @@ class LaravelJetstreamPackageServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-       $this->commands([
-           UpdateCommand::class,
-       ]);
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/laravel-jetstream-package.php',
+            'laravel-jetstream-package',
+        );
+
+        $this->app->extend(\Laravel\Jetstream\Console\InstallCommand::class, function() {
+            return new InstallCommand();
+        });
     }
 }
