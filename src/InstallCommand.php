@@ -3,17 +3,17 @@
  * @noinspection ReturnTypeCanBeDeclaredInspection
  */
 
+declare(strict_types=1);
+
 namespace Authanram\LaravelJetstreamPackage;
 
 use Illuminate\Support\Facades\File;
 
-class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
+final class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
 {
-    private $shouldDumpOptimized = false;
-
-    public function handle()
+    public function handle(): int
     {
-        //parent::handle();
+        parent::handle();
 
         $this->moveFiles();
 
@@ -21,17 +21,29 @@ class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
 
         $this->dumpOptimized();
 
-        $this->components->warn('Please execute the [php artisan test] command to ensure everything worked out well.');
+        $this->components->warn(
+            'Please execute the [php artisan test] command to ensure everything worked out well.'
+        );
+
+        return self::SUCCESS;
     }
 
-    private function moveFiles()
+    protected function dumpOptimized(): void
+    {
+        $this->components->info('Generating optimized autoload files');
+
+        resolve('composer')->dumpAutoloads(['--optimize']);
+    }
+
+    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+    private function moveFiles(): void
     {
         $paths = config('laravel-jetstream-package.paths');
 
         $this->components->info('Moving files');
 
         foreach ($paths as $source => $destination) {
-            $this->output->write("  <fg=green>Moving</> $source... ");
+            $this->output->write("  <fg=green>Moving</> {$source}... ");
 
             if (File::exists($source) === false) {
                 $this->output->write("<fg=yellow>skipped</>\n");
@@ -41,66 +53,56 @@ class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
             $this->move($source, $destination);
 
             $this->output->write("<fg=green>done</>\n");
-
-            if (str_contains($source, app_path()) === false) {
-                continue;
-            }
-
-            $this->shouldDumpOptimized = true;
         }
     }
 
-    private function move($source, $destination)
+    private function move(string $source, string $destination): void
     {
-        $isDirectory = File::isDirectory($source);
+        if (File::isDirectory($source)) {
+            File::ensureDirectoryExists(dirname($destination));
+            File::moveDirectory($source, $destination);
+            return;
+        }
 
-        File::ensureDirectoryExists($isDirectory ? $destination : dirname($destination));
-
-        $method = $isDirectory ? 'moveDirectory' : 'move';
-
-        File::{$method}($source, $destination);
+        File::ensureDirectoryExists($destination);
+        File::move($source, $destination);
     }
 
-    private function replaceInFiles()
+    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+    private function replaceInFiles(): void
     {
         $replace = config('laravel-jetstream-package.replace');
 
         foreach ($replace as $path => $contents) {
             $relativePath = str_replace(base_path().'/', '', $path);
 
-            $this->components->info("Replacing contents [$relativePath]");
+            $this->components->info("Replacing contents [{$relativePath}]");
 
-            foreach ($contents as $content) {
-                $searchContent = $content['search'];
-                $replaceContent = $content['replace'];
-
-                $this->output->write(
-                    "  <fg=green>Search:</>\n$searchContent\n\n  <fg=green>Replace:</>\n$replaceContent\n\n  ... ",
-                );
-
-                if (str_contains(file_get_contents($path), $searchContent) === false) {
-                    $this->output->write("<fg=yellow>skipped</>\n");
-                    continue;
-                }
-
-                $this->replaceInFile($searchContent, $replaceContent, $path);
-
-                $this->output->write("<fg=green>done</>\n");
-            }
+            $this->replaceAndOutput($contents, $path);
         }
     }
 
-    private function dumpOptimized()
+    /**
+     * @param array<int, string> $contents
+     *
+     * @noinspection PhpDocSignatureIsNotCompleteInspection
+     */
+    private function replaceAndOutput(array $contents, string $path): void
     {
-        if ($this->shouldDumpOptimized === false) {
-            return;
+        foreach ($contents as $content) {
+            $this->output->write("
+                <fg=green>Search:</>\n{$content['search']}\n\n
+                <fg=green>Replace:</>\n{$content['replace']}\n\n  ...&nbsp;
+            ");
+
+            if (str_contains(file_get_contents($path), $content['search']) === false) {
+                $this->output->write("<fg=yellow>skipped</>\n");
+                continue;
+            }
+
+            $this->replaceInFile($content['search'], $content['replace'], $path);
+
+            $this->output->write("<fg=green>done</>\n");
         }
-
-        $this->components->info("Generating optimized autoload files (authoritative)");
-
-        resolve('composer')->dumpAutoloads([
-            '--optimize',
-            '--classmap-authoritative',
-        ]);
     }
 }

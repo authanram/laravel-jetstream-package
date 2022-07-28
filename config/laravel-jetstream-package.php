@@ -45,7 +45,7 @@ EOF,
             "Database\\Seeders\\": "database/seeders/"
         },
         "classmap": [
-            "app/Jetstream"
+            "app/Jetstream/"
         ]
     },
 EOF,

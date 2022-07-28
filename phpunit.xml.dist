@@ -23,5 +23,6 @@
         <env name="DB_DATABASE" value="authanram--laravel_jetstream_package"/>
         <env name="DB_USERNAME" value="root"/>
         <env name="DB_PASSWORD" value="topsecret"/>
+        <env name="SESSION_DRIVER" value="database"/>
     </php>
 </phpunit>
