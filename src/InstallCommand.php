@@ -93,7 +93,7 @@ final class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
             $this->output->write(implode('', [
                 "  <fg=green>Search:</>\n{$content['search']}\n\n",
                 "  <fg=green>Replace:</>\n{$content['replace']}\n\n",
-                "  ... "
+                '  ... ',
             ]));
 
             if (str_contains(file_get_contents($path), $content['search']) === false) {
