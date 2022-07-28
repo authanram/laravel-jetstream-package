@@ -59,12 +59,12 @@ final class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
     private function move(string $source, string $destination): void
     {
         if (File::isDirectory($source)) {
-            File::ensureDirectoryExists(dirname($destination));
+            File::ensureDirectoryExists($destination);
             File::moveDirectory($source, $destination);
             return;
         }
 
-        File::ensureDirectoryExists($destination);
+        File::ensureDirectoryExists(dirname($destination));
         File::move($source, $destination);
     }
 
@@ -90,10 +90,11 @@ final class InstallCommand extends \Laravel\Jetstream\Console\InstallCommand
     private function replaceAndOutput(array $contents, string $path): void
     {
         foreach ($contents as $content) {
-            $this->output->write("
-                <fg=green>Search:</>\n{$content['search']}\n\n
-                <fg=green>Replace:</>\n{$content['replace']}\n\n  ...&nbsp;
-            ");
+            $this->output->write(implode('', [
+                "  <fg=green>Search:</>\n{$content['search']}\n\n",
+                "  <fg=green>Replace:</>\n{$content['replace']}\n\n",
+                "  ... "
+            ]));
 
             if (str_contains(file_get_contents($path), $content['search']) === false) {
                 $this->output->write("<fg=yellow>skipped</>\n");

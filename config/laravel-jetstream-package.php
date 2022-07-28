@@ -12,7 +12,7 @@ return [
         app_path('Policies') => app_path('Jetstream/Policies'),
         app_path('Providers/FortifyServiceProvider.php') => app_path('Jetstream/Providers/FortifyServiceProvider.php'),
         app_path('Providers/JetstreamServiceProvider.php') => app_path('Jetstream/Providers/JetstreamServiceProvider.php'),
-        app_path('View/Components') => app_path('Jetstream/View/Components'),
+        app_path('View') => app_path('Jetstream/View'),
         resource_path('views/api') => resource_path('views/jetstream/api'),
         resource_path('views/auth') => resource_path('views/jetstream/auth'),
         resource_path('views/layouts') => resource_path('views/jetstream/layouts'),
@@ -28,7 +28,7 @@ return [
     'replace' => [
         base_path('composer.json') => [
             [
-                'search' => <<<'EOF'
+    'search' => <<<'EOF'
     "autoload": {
         "psr-4": {
             "App\\": "app/",
@@ -37,7 +37,7 @@ return [
         }
     },
 EOF,
-                'replace' => <<<'EOF'
+    'replace' => <<<'EOF'
     "autoload": {
         "psr-4": {
             "App\\": ["app/", "app/Jetstream/"],
@@ -54,12 +54,12 @@ EOF,
 
         config_path('view.php') => [
             [
-                'search' => <<<'EOF'
+    'search' => <<<'EOF'
     'paths' => [
         resource_path('views'),
     ],
 EOF,
-                'replace' => <<<'EOF'
+    'replace' => <<<'EOF'
     'paths' => [
         resource_path('views'),
         resource_path('views/jetstream'),
